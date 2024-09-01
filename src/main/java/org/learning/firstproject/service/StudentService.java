@@ -18,11 +18,18 @@ public class StudentService {
     public Student getStudentById(int id){
         return studentRepository.getStudentById(id);
     }
+    public List<Student> getStudentByname(String name){
+        return studentRepository.getStudentByName("%"+name+"%");
+    }
+
     public void addStudent(StudentRequest studentRequest){
         studentRepository.insertStudent(studentRequest);
     }
     public Student updateStudent(StudentRequest studentRequest,int id){
         studentRepository.updateStudent(studentRequest,id);
         return studentRepository.getStudentById(id);
+    }
+    public void deleteStudent(int id) {
+        studentRepository.deleteStudent(id);
     }
 }

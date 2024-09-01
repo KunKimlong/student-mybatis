@@ -15,6 +15,10 @@ public interface StudentRepository {
     @Select("SELECT * FROM student WHERE id = #{id}")
     public Student getStudentById(int id);
 
+    @Select("SELECT * FROM student WHERE name LIKE #{stuName}")
+    public List<Student> getStudentByName(@Param("stuName") String name);
+
+
     @Insert("INSERT INTO student (name,gender,score1,score2,score3,total)" +
             " VALUES(#{stu.name},#{stu.gender},#{stu.score1},#{stu.score2},#{stu.score3},#{stu.total})")
     public void insertStudent(@Param("stu") StudentRequest studentRequest);
@@ -22,4 +26,8 @@ public interface StudentRepository {
     @Update("UPDATE student SET name = #{stu.name},gender = #{stu.gender}," +
             "score1 = #{stu.score1},score2 = #{stu.score2},score3 = #{stu.score3},total = #{stu.total} WHERE id = #{stuId}")
     public void updateStudent(@Param("stu") StudentRequest studentRequest,@Param("stuId") int id);
+
+    @Delete("DELETE FROM student WHERE id = #{id}")
+    public void deleteStudent(@Param("id") int id);
+
 }

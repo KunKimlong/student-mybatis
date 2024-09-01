@@ -20,6 +20,14 @@ public class StudentController {
     @GetMapping("/student")
     public ResponseEntity<StudentResponse<List<Student>>> getAllStudents() {
         List<Student> students = studentService.getAllStudent();
+        if(students.isEmpty()){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("No data found")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(404));
+        }
         StudentResponse studentResponse = StudentResponse.builder()
                 .message("Get All students Successfully")
                 .data(students)
@@ -30,8 +38,16 @@ public class StudentController {
     }
     @GetMapping("/student/{id}")
     public ResponseEntity<StudentResponse<Student>> getStudentById(@PathVariable int id) {
-//        System.out.println("ID = "+id);
+//      System.out.println("ID = "+id);
         Student student = studentService.getStudentById(id);
+        if(student == null){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("No data found")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(404));
+        }
         StudentResponse studentResponse = StudentResponse.builder()
                 .data(student)
                 .message("Get Student Successfully")
@@ -40,39 +56,84 @@ public class StudentController {
                 .build();
         return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(200));
     }
+
+    @GetMapping("/student/name")
+    public ResponseEntity<StudentResponse<List<Student>>> getStudentByName(@RequestParam String name) {
+        List<Student> students = studentService.getStudentByname(name);
+        if(students.isEmpty()){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("No data found")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(404));
+        }
+        StudentResponse studentResponse = StudentResponse.builder()
+                .message("Get All students Successfully")
+                .data(students)
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .status(HttpStatus.OK)
+                .build();
+        return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(200));
+    }
+
     @PostMapping("/addstudent")
     public ResponseEntity<StudentResponse> addStudent(@RequestBody StudentRequest studentRequest) {
-//        System.out.println("Name = "+studentRequest.getName());
-//        System.out.println("Gender = "+studentRequest.getGender());
-//        System.out.println("Score1 = "+studentRequest.getScore1());
-//        System.out.println("Score2 = "+studentRequest.getScore2());
-//        System.out.println("Score3 = "+studentRequest.getScore3());
-//        System.out.println("Total = "+studentRequest.getTotal());
+        if(studentRequest.getName() != null && studentRequest.getName()!=null
+                && studentRequest.getScore1()!=0.0 && studentRequest.getScore2()!=0.0
+                && studentRequest.getScore3()!=0.0
+        ){
+            studentRequest.setTotal(studentRequest.getScore1() + studentRequest.getScore2() + studentRequest.getScore3());
+            studentService.addStudent(studentRequest);
 
-        studentRequest.setTotal(studentRequest.getScore1() + studentRequest.getScore2() + studentRequest.getScore3());
-        studentService.addStudent(studentRequest);
-
-        StudentResponse studentResponse = StudentResponse.builder()
-                .message("Add Student Successfully")
-                .timestamp(new Timestamp(System.currentTimeMillis()))
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("Add Student Successfully")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
 //                .status(HttpStatus.CREATED)
-                .status(HttpStatus.valueOf(201))
-                .build();
+                    .status(HttpStatus.valueOf(201))
+                    .build();
 
 
-        return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(201));
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(201));
+        }
+        else{
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("Add Student not Successfully")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.BAD_REQUEST);
+        }
+
+
     }
     @PutMapping("/update/{id}")
     public ResponseEntity<StudentResponse<Student>> updateStudent(@PathVariable int id,@RequestBody StudentRequest studentRequest) {
-//        System.out.println("Name = "+studentRequest.getName());
-//        System.out.println("Gender = "+studentRequest.getGender());
-//        System.out.println("Score1 = "+studentRequest.getScore1());
-//        System.out.println("Score2 = "+studentRequest.getScore2());
-//        System.out.println("Score3 = "+studentRequest.getScore3());
-//        System.out.println("Total = "+studentRequest.getTotal());
+        Student chceckStudent = studentService.getStudentById(id);
+        if(chceckStudent == null){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("No data found")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(404));
+        }
+
+        if(
+                !(studentRequest.getName() != null && studentRequest.getName()!=null
+                        && studentRequest.getScore1()!=0.0 && studentRequest.getScore2()!=0.0
+                        && studentRequest.getScore3()!=0.0)
+        ){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("Add Student not Successfully")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.BAD_REQUEST);
+        }
+
         studentRequest.setTotal(studentRequest.getScore1() + studentRequest.getScore2() + studentRequest.getScore3());
         Student student = studentService.updateStudent(studentRequest, id);
-
         StudentResponse studentResponse = StudentResponse.builder()
                 .message("Update Student Successfully")
                 .data(student)
@@ -81,6 +142,25 @@ public class StudentController {
                 .build();
 
 
+        return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(200));
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<StudentResponse> deleteStudent(@PathVariable int id){
+        Student chceckStudent = studentService.getStudentById(id);
+        if(chceckStudent == null){
+            StudentResponse studentResponse = StudentResponse.builder()
+                    .message("No data found")
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+            return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(404));
+        }
+        studentService.deleteStudent(id);
+        StudentResponse studentResponse = StudentResponse.builder()
+                .message("Delete Successfully")
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .status(HttpStatus.valueOf(200))
+                .build();
         return new ResponseEntity<>(studentResponse, HttpStatus.valueOf(200));
     }
 }
